@@ -1,0 +1,33 @@
+Sub MoveRowsToDoneSheet()
+    Dim wsSource As Worksheet
+    Dim wsDone As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+    Dim doneValue As String
+    Dim recurringValue As String
+    Dim printValue As String
+    
+
+    Set wsSource = ThisWorkbook.Sheets("Task List")
+    Set wsDone = ThisWorkbook.Sheets("Done")
+    
+  
+    lastRow = wsSource.Cells(wsSource.Rows.Count, "A").End(xlUp).Row
+    
+    printValue = wsSource.Range("C1").Value
+    
+    For i = lastRow To 2 Step -1
+        doneValue = wsSource.Cells(i, 4).Value
+        recurringValue = wsSource.Cells(i, 5).Value
+        
+        If doneValue = "Done" And recurringValue <> "Recurring" Then
+            wsSource.Rows(i).Copy Destination:=wsDone.Rows(wsDone.Cells(wsDone.Rows.Count, 1).End(xlUp).Row + 1)
+            
+            wsDone.Cells(wsDone.Cells(wsDone.Rows.Count, 12).End(xlUp).Row + 1, 12).Value = printValue
+            
+            wsSource.Rows(i).Delete
+        End If
+    Next i
+End Sub
+
+
