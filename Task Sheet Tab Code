@@ -1,0 +1,35 @@
+Private Sub Worksheet_Change(ByVal Target As Range)
+   Dim A As Range: Set A = Range("D:D")
+   Dim v As String
+   If Intersect(Target, A) Is Nothing Then Exit Sub
+
+   Application.EnableEvents = False
+      v = Target.Value
+      If v = "Not Started" Then Target.Offset(0, 5) = Now()
+      If v = "Pending" Then Target.Offset(0, 6) = Now()
+      If v = "Done" Then Target.Offset(0, 7) = Now()
+   Application.EnableEvents = True
+
+    Dim Z As Long
+
+    Dim xVal As String
+
+    On Error Resume Next
+
+    If Intersect(Target, Range("D:D")) Is Nothing Then Exit Sub
+
+    Application.EnableEvents = False
+
+    For Z = 1 To Target.Count
+
+        If Target(Z).Value > 0 Then
+
+            Call MoveRowsToDoneSheet
+
+        End If
+
+    Next
+
+    Application.EnableEvents = True
+
+End Sub
