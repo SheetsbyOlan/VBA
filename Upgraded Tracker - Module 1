@@ -1,0 +1,32 @@
+Sub MoveRowsToParkedSheet()
+    Dim wsSource As Worksheet
+    Dim wsDone As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+    Dim doneValue As String
+    Dim recurringValue As String
+    Dim printValue As String
+    
+
+    Set wsSource = ThisWorkbook.Sheets("Parked")
+    Set wsDone = ThisWorkbook.Sheets("Done")
+    Set wsTask = ThisWorkbook.Sheets("Task List")
+    
+  
+    lastRow = wsSource.Cells(wsSource.Rows.Count, "B").End(xlUp).Row
+    
+   
+    
+    For i = lastRow To 2 Step -1
+        doneValue = wsSource.Cells(i, 4).Value
+        recurringValue = wsSource.Cells(i, 5).Value
+        
+        If doneValue = "Ready" And recurringValue <> "Recurring" Then
+            wsSource.Rows(i).Copy Destination:=wsTask.Rows(wsTask.Cells(wsTask.Rows.Count, 2).End(xlUp).Row + 1)
+    
+        
+            
+            wsSource.Rows(i).Delete
+        End If
+    Next i
+End Sub
