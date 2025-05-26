@@ -1,0 +1,76 @@
+Sub MoveRowsToDoneSheet()
+    Dim wsSource As Worksheet
+    Dim wsDone As Worksheet
+    Dim wsParked As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+    Dim doneValue As String
+    Dim printValue As String
+    
+    Dim targetDoneRow As Long ' Variable to store the target row number in the Done sheet
+    
+    ' Define column numbers for clarity
+    Const SOURCE_CRITERIA_COL As Long = 3  ' Column C in "Task List" for "Done"/"Parked" status
+    Const DONE_PRINT_VALUE_COL As Long = 13 ' Column M in "Done" sheet for printValue
+    Const FORMULA_COL_LETTER As String = "L" ' Column L for formula copying (corresponds to column 12)
+    Const FORMULA_COL_NUMBER As Long = 12    ' Column number for L
+
+    Set wsSource = ThisWorkbook.Sheets("Task List")
+    Set wsDone = ThisWorkbook.Sheets("Done")
+    Set wsParked = ThisWorkbook.Sheets("Parked")
+    
+    lastRow = wsSource.Cells(wsSource.Rows.Count, "A").End(xlUp).Row
+    
+    printValue = wsSource.Range("B1").Value
+    
+    Application.ScreenUpdating = False 
+    
+    For i = lastRow To 2 Step -1 
+        doneValue = wsSource.Cells(i, SOURCE_CRITERIA_COL).Value
+        
+        If doneValue = "Done" Then
+            ' Determine the target row in the "Done" sheet
+            If wsDone.Cells(1, "A").Value = "" And wsDone.Cells(wsDone.Rows.Count, "A").End(xlUp).Row = 1 Then
+                targetDoneRow = 1 ' If "Done" sheet is completely empty, paste in row 1
+            Else
+                targetDoneRow = wsDone.Cells(wsDone.Rows.Count, "A").End(xlUp).Row + 1
+            End If
+            
+            ' 1. Copy the entire row from source to the target row in "Done" sheet
+            wsSource.Rows(i).Copy Destination:=wsDone.Rows(targetDoneRow)
+            
+            ' 2. Place the printValue in column M (13) of the newly copied row
+            wsDone.Cells(targetDoneRow, DONE_PRINT_VALUE_COL).Value = printValue
+            
+            ' 3. NEW: Copy formula from column L of the row above to column L of the new row
+            If targetDoneRow > 1 Then ' Check if there is a row above
+                ' Check if the cell in FORMULA_COL_NUMBER of the row above has a formula
+                If wsDone.Cells(targetDoneRow - 1, FORMULA_COL_NUMBER).HasFormula Then
+                    wsDone.Cells(targetDoneRow - 1, FORMULA_COL_NUMBER).Copy
+                    wsDone.Cells(targetDoneRow, FORMULA_COL_NUMBER).PasteSpecial Paste:=xlPasteFormulas
+                    Application.CutCopyMode = False ' Clear clipboard
+                Else
+                    ' Optional: If the cell above doesn't have a formula, you could copy its value
+                    ' wsDone.Cells(targetDoneRow, FORMULA_COL_NUMBER).Value = wsDone.Cells(targetDoneRow - 1, FORMULA_COL_NUMBER).Value
+                End If
+            End If
+            
+            ' 4. Delete the row from the source sheet
+            wsSource.Rows(i).Delete
+            
+        ElseIf doneValue = "Parked" Then
+            Dim targetParkedRow As Long
+            If wsParked.Cells(1, "A").Value = "" And wsParked.Cells(wsParked.Rows.Count, "A").End(xlUp).Row = 1 Then
+                targetParkedRow = 1
+            Else
+                targetParkedRow = wsParked.Cells(wsParked.Rows.Count, "A").End(xlUp).Row + 1
+            End If
+            
+            wsSource.Rows(i).Copy Destination:=wsParked.Rows(targetParkedRow)
+            wsSource.Rows(i).Delete
+        End If
+    Next i
+    
+    Application.ScreenUpdating = True ' Restore screen updating
+    
+End Sub
