@@ -1,0 +1,4 @@
+Sub RefreshAllPivotTables()
+    Application.CalculateFull
+    ActiveWorkbook.RefreshAll
+End Sub
