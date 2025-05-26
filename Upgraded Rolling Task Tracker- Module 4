@@ -1,0 +1,65 @@
+Sub CopyRecurringTasksToTaskList()
+
+  Dim wsRecurring As Worksheet
+  Dim wsTaskList As Worksheet
+  Dim lastRowRecurring As Long
+  Dim lastRowTaskList As Long
+  Dim i As Long
+  Dim nextRowTaskList As Long
+  Dim firstNewRow As Long ' To track the first row added to Task List
+
+  ' Set the worksheet objects
+  Set wsRecurring = ThisWorkbook.Sheets("Recurring")
+  Set wsTaskList = ThisWorkbook.Sheets("Task List")
+
+  ' Find the last non-empty row in the "Recurring" sheet (Column K)
+  lastRowRecurring = wsRecurring.Cells(Rows.Count, "K").End(xlUp).Row
+
+  ' Find the last non-empty row in the "Task List" sheet (Column A) before adding new tasks
+  lastRowTaskList = wsTaskList.Cells(Rows.Count, "A").End(xlUp).Row
+
+  ' Determine the first empty row in "Task List" where new tasks will be added
+  If lastRowTaskList = 1 And IsEmpty(wsTaskList.Cells(1, "A")) Then
+    nextRowTaskList = 1
+  Else
+    nextRowTaskList = lastRowTaskList + 1
+  End If
+  firstNewRow = nextRowTaskList ' Store the starting row for newly added tasks
+
+  ' *** Disable event handling ***
+  Application.EnableEvents = False
+
+  ' Loop through each row in the "Recurring" sheet
+  For i = 2 To lastRowRecurring
+
+    ' Check if column K in the current row is "Yes" (case-insensitive)
+    If LCase(Trim(wsRecurring.Cells(i, "K").Value)) = "yes" Then
+
+      ' Copy the values from columns B to H in the current row of "Recurring"
+      wsTaskList.Cells(nextRowTaskList, "A").Resize(1, 7).Value = wsRecurring.Cells(i, "B").Resize(1, 7).Value
+
+      ' Increment the next empty row counter for "Task List"
+      nextRowTaskList = nextRowTaskList + 1
+
+    End If
+
+  Next i
+
+  ' Add the current date (without time) to column I of the "Recurring" sheet (overwrite existing)
+  For i = 2 To lastRowRecurring
+    If LCase(Trim(wsRecurring.Cells(i, "K").Value)) = "yes" Then
+      wsRecurring.Cells(i, "I").Value = Date ' Use Date for date only, overwriting existing
+    End If
+  Next i
+
+  ' Add a date stamp (without time) to column I of the Task List for the newly added rows
+  For i = firstNewRow To nextRowTaskList - 1
+    wsTaskList.Cells(i, "I").Value = Date ' Use Date for date only
+  Next i
+
+  ' *** Re-enable event handling ***
+  Application.EnableEvents = True
+
+  MsgBox "Recurring tasks copied to 'Task List'!", vbInformation
+
+End Sub
